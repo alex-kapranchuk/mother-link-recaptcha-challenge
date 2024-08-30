@@ -1,5 +1,6 @@
 package models;
 
+import io.qameta.allure.Step;
 import org.instancio.Instancio;
 import org.instancio.Model;
 
@@ -19,7 +20,6 @@ public class BillingEntity {
     public static Model<BillingEntity> getCompanyModel() {
         return companyModel;
     }
-
     static Model<BillingEntity> companyModel = Instancio.of(BillingEntity.class)
             .generate(field(BillingEntity::getCompanyName), gen -> gen.text().pattern("#C#c#c#c#c#c#c#c#c"))
             .toModel();

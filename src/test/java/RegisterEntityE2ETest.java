@@ -3,6 +3,7 @@ import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.options.AriaRole;
+import io.qameta.allure.Allure;
 import io.qameta.allure.Description;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
@@ -20,6 +21,7 @@ import pageobjects.BillingEntitiesPage;
 import pageobjects.LoginPage;
 import pageobjects.UsersPage;
 
+import java.io.ByteArrayInputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
@@ -38,7 +40,8 @@ public class RegisterEntityE2ETest {
     private static final String EXTENSION_PATH = getExtensionPath();
 
     // Generate model - Note: Generate only for Company name - in real case better generate for all fields
-    final String COMPANY_NAME = Instancio.create(BillingEntity.getCompanyModel()) + ".ltd";
+    BillingEntity entityModel = Instancio.create(BillingEntity.getCompanyModel());
+    final String COMPANY_NAME = entityModel.getCompanyName() + ".ltd";
 
     @Test
     @Feature("Login on prod with recaptcha")
@@ -64,7 +67,7 @@ public class RegisterEntityE2ETest {
 
             // Get the first page in the context and increase wait for elements - this don`t have impact for time of test execution
             Page page = context.pages().get(0);
-            page.setDefaultTimeout(90000);
+            page.setDefaultTimeout(60000);
 
             // Use the page objects
             LoginPage loginPage = new LoginPage(page);
@@ -81,6 +84,9 @@ public class RegisterEntityE2ETest {
 
             loginPage
                     .clickSignIn();
+
+            //Allure screenshot
+            Allure.addAttachment("Screenshot", new ByteArrayInputStream(page.screenshot()));
 
             //Check successful login
             page.waitForURL("https://mc-99999.motherlink.io/en/account");
@@ -118,6 +124,9 @@ public class RegisterEntityE2ETest {
                             billingEntity.getState(), billingEntity.getZip())
                     .doneCreating();
 
+            //Allure screenshot
+            io.qameta.allure.Allure.addAttachment("Screenshot", new ByteArrayInputStream(page.screenshot()));
+
             logger.info("Check creating of entity");
 
             //Add assert for creating pop-up
@@ -149,6 +158,9 @@ public class RegisterEntityE2ETest {
 
             // Stream to perform assertions isHidden()
             assertThat(page.getByRole(AriaRole.ROW, new Page.GetByRoleOptions().setName(COMPANY_NAME + " " + billingEntity.getRegistrationCode())).getByRole(AriaRole.BUTTON)).isHidden();
+
+            //Allure screenshot
+            Allure.addAttachment("Screenshot", new ByteArrayInputStream(page.screenshot()));
 
             logger.info("Test is finished");
             /* Generally this test running during 6 sec **/

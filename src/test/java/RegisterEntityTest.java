@@ -1,6 +1,7 @@
 import com.microsoft.playwright.*;
 import com.microsoft.playwright.options.AriaRole;
 import com.microsoft.playwright.options.Cookie;
+import io.qameta.allure.Allure;
 import io.qameta.allure.Description;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
@@ -16,6 +17,7 @@ import pageobjects.AccountPage;
 import pageobjects.BillingEntitiesPage;
 import pageobjects.UsersPage;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -30,7 +32,8 @@ public class RegisterEntityTest extends Base{
     BillingEntity billingEntity = new BillingEntity();
 
     // Generate model - Note: Generate only for Company name - in real case better generate for all fields
-    final String COMPANY_NAME = Instancio.create(BillingEntity.getCompanyModel()) + ".ltd";
+    BillingEntity entityModel = Instancio.create(BillingEntity.getCompanyModel());
+    final String COMPANY_NAME = entityModel.getCompanyName() + ".ltd";
 
     @Test
     @Feature("Login on prod with cookies")
@@ -38,9 +41,7 @@ public class RegisterEntityTest extends Base{
     @DisplayName("Test: Login with cookies on prod and create entity")
     @Description("Test description: Login with cookies on prod and create entity E2E")
     public void registerEntityTest(){
-        //Create context for this specified test
-        BrowserContext context = browser.newContext();
-
+        //Add cookie for context for this specified test
         logger.info("Read cookies from resources");
         List<Cookie> cookies;
         try {
@@ -51,7 +52,6 @@ public class RegisterEntityTest extends Base{
         context.addCookies(cookies);
 
         logger.info("Create new context with cookies and set Up timeout");
-        Page page = context.newPage();
 
             // Use the page objects
             AccountPage accountPage = new AccountPage(page);
@@ -79,6 +79,9 @@ public class RegisterEntityTest extends Base{
                     .fillAddressAndCity(billingEntity.getAddress(), billingEntity.getCity(),
                             billingEntity.getState(), billingEntity.getZip())
                     .doneCreating();
+
+             //Allure screenshot
+             Allure.addAttachment("Screenshot", new ByteArrayInputStream(page.screenshot()));
 
         logger.info("Check creating of entity");
 
@@ -111,6 +114,9 @@ public class RegisterEntityTest extends Base{
 
             // Stream to perform assertions isHidden()
             assertThat(page.getByRole(AriaRole.ROW, new Page.GetByRoleOptions().setName(COMPANY_NAME + " " + billingEntity.getRegistrationCode())).getByRole(AriaRole.BUTTON)).isHidden();
+
+            //Allure screenshot
+            Allure.addAttachment("Screenshot", new ByteArrayInputStream(page.screenshot()));
 
         logger.info("Test is finished");
         /* Generally this test running during 6 sec **/
